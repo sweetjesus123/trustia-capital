@@ -1,7 +1,5 @@
 import { Resend } from 'resend';
 
-export const runtime = 'edge';
-
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type ContactPayload = {
