@@ -1,7 +1,9 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { createClient } from '@/utils/supabase/server';
 
 export const runtime = 'nodejs';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const inquiryTypes = new Set([
   'wealth-management',
@@ -166,6 +168,15 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Request body must be valid JSON.' }, { status: 400 });
   }
 
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const recipientEmail = process.env.INQUIRY_RECIPIENT_EMAIL;
+
+  if (!apiKey || !recipientEmail) {
+    console.error('Email service is not configured: Resend environment variables are missing.');
+    return Response.json({ error: 'Inquiry email is temporarily unavailable. Please try again later.' }, { status: 503 });
+  }
+
   if (isRecord(body) && (body.requestType === 'loan' || body.requestType === 'investment')) {
     const action = getActionPayload(body);
     if (!action) {
@@ -179,16 +190,6 @@ export async function POST(request: Request) {
     }
     if (user.email.toLowerCase() !== action.email.toLowerCase()) {
       return Response.json({ error: 'The request email must match your signed-in account.' }, { status: 403 });
-    }
-
-    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, CONTACT_EMAIL } = process.env;
-    const port = Number(SMTP_PORT);
-    if (
-      !SMTP_HOST || !SMTP_USER || !SMTP_PASS || !CONTACT_EMAIL ||
-      !Number.isInteger(port) || port < 1 || port > 65535
-    ) {
-      console.error('Support email is not configured: SMTP environment variables are missing or invalid.');
-      return Response.json({ error: 'Support email is temporarily unavailable. Please contact support.' }, { status: 503 });
     }
 
     const fullName =
@@ -212,22 +213,16 @@ export async function POST(request: Request) {
     const subjectName = fullName.replace(/[\r\n]+/g, ' ').slice(0, 120);
 
     try {
-      const transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port,
-        secure: port === 465,
-        auth: { user: SMTP_USER, pass: SMTP_PASS },
-      });
-      await transporter.sendMail({
-        from: SMTP_USER,
-        to: CONTACT_EMAIL,
+      await resend.emails.send({
+        from: fromEmail,
+        to: recipientEmail,
         replyTo: user.email,
         subject: `Client ${action.requestType} request — ${subjectName}`,
         text: details.join('\n'),
         html: `<h2>Client ${action.requestType} request</h2><p><strong>Client:</strong> ${safeFullName}</p><p><strong>Email:</strong> ${safeEmail}</p>${escapedDetails}`,
       });
     } catch (error) {
-      console.error('Failed to send client request email:', error);
+      console.error('Failed to send client request email via Resend:', error);
       return Response.json({ error: 'Your request was recorded, but support notification failed. Please contact Private Client Support.' }, { status: 502 });
     }
 
@@ -242,31 +237,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, CONTACT_EMAIL } = process.env;
-  const port = Number(SMTP_PORT);
-  if (
-    !SMTP_HOST ||
-    !SMTP_USER ||
-    !SMTP_PASS ||
-    !CONTACT_EMAIL ||
-    !Number.isInteger(port) ||
-    port < 1 ||
-    port > 65535
-  ) {
-    console.error('Inquiry email is not configured: SMTP environment variables are missing or invalid.');
-    return Response.json(
-      { error: 'Inquiry email is temporarily unavailable. Please try again later.' },
-      { status: 503 },
-    );
-  }
-
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
-
   const safeName = escapeHtml(inquiry.fullName);
   const safeEmail = escapeHtml(inquiry.email);
   const safeType = escapeHtml(inquiry.inquiryType);
@@ -274,9 +244,9 @@ export async function POST(request: Request) {
   const safeMessage = escapeHtml(inquiry.message).replace(/\r?\n/g, '<br>');
 
   try {
-    await transporter.sendMail({
-      from: SMTP_USER,
-      to: CONTACT_EMAIL,
+    await resend.emails.send({
+      from: fromEmail,
+      to: recipientEmail,
       replyTo: inquiry.email,
       subject: `Website inquiry: ${inquiry.inquiryType}`,
       text: [
@@ -296,7 +266,7 @@ export async function POST(request: Request) {
         <p><strong>Message:</strong><br>${safeMessage}</p>`,
     });
   } catch (error) {
-    console.error('Failed to send inquiry email:', error);
+    console.error('Failed to send inquiry email via Resend:', error);
     return Response.json(
       { error: 'We could not send your inquiry right now. Please try again shortly.' },
       { status: 502 },
