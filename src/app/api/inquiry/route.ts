@@ -170,14 +170,19 @@ export async function POST(request: Request) {
 
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-  const recipientEmail = process.env.INQUIRY_RECIPIENT_EMAIL;
 
-  if (!apiKey || !recipientEmail) {
-    console.error('Email service is not configured: Resend environment variables are missing.');
-    return Response.json({ error: 'Inquiry email is temporarily unavailable. Please try again later.' }, { status: 503 });
+  if (!apiKey) {
+    console.error('Email service is not configured: Resend API key is missing.');
+    return Response.json({ error: 'Email service is temporarily unavailable.' }, { status: 503 });
   }
 
+  // --- 1. HANDLE FINANCIAL ACTIONS (LOANS / INVESTMENTS) ---
   if (isRecord(body) && (body.requestType === 'loan' || body.requestType === 'investment')) {
+    const accountingRecipient = process.env.ACCOUNTING_RECIPIENT_EMAIL || process.env.INQUIRY_RECIPIENT_EMAIL;
+    if (!accountingRecipient) {
+      return Response.json({ error: 'Accounting recipient email is not configured.' }, { status: 503 });
+    }
+
     const action = getActionPayload(body);
     if (!action) {
       return Response.json({ error: 'Please provide valid request details.' }, { status: 400 });
@@ -215,7 +220,7 @@ export async function POST(request: Request) {
     try {
       await resend.emails.send({
         from: fromEmail,
-        to: recipientEmail,
+        to: accountingRecipient,
         replyTo: user.email,
         subject: `Client ${action.requestType} request — ${subjectName}`,
         text: details.join('\n'),
@@ -223,10 +228,16 @@ export async function POST(request: Request) {
       });
     } catch (error) {
       console.error('Failed to send client request email via Resend:', error);
-      return Response.json({ error: 'Your request was recorded, but support notification failed. Please contact Private Client Support.' }, { status: 502 });
+      return Response.json({ error: 'Your request was recorded, but accounting notification failed. Please contact support.' }, { status: 502 });
     }
 
-    return Response.json({ message: 'Your request was sent to Private Client Support.' });
+    return Response.json({ message: 'Your request was sent to Private Client Accounting.' });
+  }
+
+  // --- 2. HANDLE GENERAL SUPPORT INQUIRIES ---
+  const supportRecipient = process.env.INQUIRY_RECIPIENT_EMAIL;
+  if (!supportRecipient) {
+    return Response.json({ error: 'Support recipient email is not configured.' }, { status: 503 });
   }
 
   const inquiry = getPayload(body);
@@ -246,7 +257,7 @@ export async function POST(request: Request) {
   try {
     await resend.emails.send({
       from: fromEmail,
-      to: recipientEmail,
+      to: supportRecipient,
       replyTo: inquiry.email,
       subject: `Website inquiry: ${inquiry.inquiryType}`,
       text: [

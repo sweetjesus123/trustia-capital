@@ -11,7 +11,7 @@ export default function RelationshipManagerCard() {
       <div className="mt-5 flex items-center gap-4">
         <div aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 text-lg font-bold text-amber-300">AW</div>
         <div>
-          <p className="font-semibold text-white">Alexander Wright</p>
+          <p className="font-semibold text-white">Alistair Sterling</p>
           <p className="mt-1 text-sm text-gray-400">Senior Managing Director, Private Wealth</p>
         </div>
       </div>
