@@ -1,7 +1,9 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { createClient } from '@/utils/supabase/server';
 
 export const runtime = 'nodejs';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -26,6 +28,15 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return Response.json({ error: 'Request body must be valid JSON.' }, { status: 400 });
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const accountingRecipient = process.env.ACCOUNTING_RECIPIENT_EMAIL || process.env.INQUIRY_RECIPIENT_EMAIL;
+
+  if (!apiKey || !accountingRecipient) {
+    console.error('Email service is not configured: Resend API key or accounting recipient is missing.');
+    return Response.json({ error: 'Support email is temporarily unavailable. Please contact support.' }, { status: 503 });
   }
 
   if (
@@ -60,16 +71,6 @@ export async function POST(request: Request) {
     return Response.json({ error: 'A verified account is required to request a withdrawal.' }, { status: 403 });
   }
 
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, CONTACT_EMAIL } = process.env;
-  const port = Number(SMTP_PORT);
-  if (
-    !SMTP_HOST || !SMTP_USER || !SMTP_PASS || !CONTACT_EMAIL ||
-    !Number.isInteger(port) || port < 1 || port > 65535
-  ) {
-    console.error('Withdrawal support email is not configured: SMTP environment variables are missing or invalid.');
-    return Response.json({ error: 'Support email is temporarily unavailable. Please contact support.' }, { status: 503 });
-  }
-
   const fullName =
     typeof user.user_metadata.full_name === 'string'
       ? user.user_metadata.full_name
@@ -88,26 +89,22 @@ export async function POST(request: Request) {
   ];
   const subjectName = fullName.replace(/[\r\n]+/g, ' ').slice(0, 120);
   const escapedDetails = details.map((line) => `<p>${escapeHtml(line)}</p>`).join('');
+  const safeFullName = escapeHtml(fullName);
+  const safeEmail = escapeHtml(user.email);
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port,
-      secure: port === 465,
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-    });
-    await transporter.sendMail({
-      from: SMTP_USER,
-      to: CONTACT_EMAIL,
+    await resend.emails.send({
+      from: fromEmail,
+      to: accountingRecipient,
       replyTo: user.email,
       subject: `Client withdrawal request — ${subjectName}`,
       text: details.join('\n'),
-      html: `<h2>Client withdrawal request</h2>${escapedDetails}`,
+      html: `<h2>Client withdrawal request</h2><p><strong>Client:</strong> ${safeFullName}</p><p><strong>Email:</strong> ${safeEmail}</p>${escapedDetails}`,
     });
   } catch (error) {
-    console.error('Failed to send withdrawal request email:', error);
+    console.error('Failed to send withdrawal request email via Resend:', error);
     return Response.json({ error: 'We could not notify support. Please try again later.' }, { status: 502 });
   }
 
-  return Response.json({ message: 'Your request was sent to Private Client Support.' });
+  return Response.json({ message: 'Your request was sent to Private Client Accounting.' });
 }
