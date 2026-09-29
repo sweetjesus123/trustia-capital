@@ -9,7 +9,7 @@ export default function RelationshipManagerCard() {
         Private relationship manager
       </div>
       <div className="mt-5 flex items-center gap-4">
-        <div aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 text-lg font-bold text-amber-300">AW</div>
+        <div aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 text-lg font-bold text-amber-300">AS</div>
         <div>
           <p className="font-semibold text-white">Alistair Sterling</p>
           <p className="mt-1 text-sm text-gray-400">Senior Managing Director, Private Wealth</p>
@@ -19,11 +19,11 @@ export default function RelationshipManagerCard() {
         Contact your relationship manager directly by secure email or request verified wire instructions.
       </p>
       <div className="mt-5 flex flex-wrap gap-3">
-        <Link href="mailto:a.wright@trustiacapital.com" className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-xs font-semibold text-[#11100d] transition hover:bg-amber-400">
+        <Link href="mailto:alistair.sterling@trustiacapital.com" className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-xs font-semibold text-[#11100d] transition hover:bg-amber-400">
           <Mail className="h-4 w-4" aria-hidden="true" />
-          Email Alexander
+          Email Alistair
         </Link>
-        <Link href="mailto:a.wright@trustiacapital.com?subject=Request%20for%20Wire%20Instructions" className="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-4 py-2.5 text-xs font-semibold text-gray-200 transition hover:border-amber-500/50 hover:text-white">
+        <Link href="mailto:alistair.sterling@trustiacapital.com?subject=Request%20for%20Wire%20Instructions" className="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-4 py-2.5 text-xs font-semibold text-gray-200 transition hover:border-amber-500/50 hover:text-white">
           <Mail className="h-4 w-4" aria-hidden="true" />
           Request Wire Instructions
         </Link>
