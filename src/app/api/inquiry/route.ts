@@ -1,6 +1,8 @@
 import nodemailer from 'nodemailer';
 import { createClient } from '@/utils/supabase/server';
 
+export const runtime = 'nodejs';
+
 const inquiryTypes = new Set([
   'wealth-management',
   'private-credit',

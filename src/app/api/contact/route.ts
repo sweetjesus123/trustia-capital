@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
 
+export const runtime = 'nodejs';
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type ContactPayload = {
