@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Trustia Capital — OG Banner</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #090d16;
+    color: #e5e7eb;
+  }
+  .banner {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    padding: 70px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background:
+      radial-gradient(ellipse 900px 500px at 100% 0%, rgba(245, 158, 11, 0.18), transparent 60%),
+      radial-gradient(ellipse 700px 400px at 0% 100%, rgba(245, 158, 11, 0.08), transparent 55%),
+      linear-gradient(135deg, #090d16 0%, #0b1019 100%);
+    overflow: hidden;
+  }
+  /* subtle border frame */
+  .banner::before {
+    content: "";
+    position: absolute;
+    inset: 24px;
+    border: 1px solid rgba(245, 158, 11, 0.18);
+    border-radius: 20px;
+    pointer-events: none;
+  }
+  /* faint diagonal accent line */
+  .banner::after {
+    content: "";
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 2;
+  }
+  .logo-mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: #f59e0b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0b0b0b;
+  }
+  .logo-mark svg { width: 32px; height: 32px; }
+  .brand-name {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+  }
+  .brand-name span { color: #f59e0b; }
+
+  .middle {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #f59e0b;
+    padding: 6px 14px;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.08);
+    margin-bottom: 24px;
+  }
+  .headline {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: #ffffff;
+  }
+  .headline span { color: #f59e0b; }
+  .subline {
+    margin-top: 22px;
+    font-size: 22px;
+    line-height: 1.4;
+    color: #9ca3af;
+    max-width: 780px;
+    font-weight: 400;
+  }
+
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    z-index: 2;
+  }
+  .domain {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e5e7eb;
+    letter-spacing: 0.01em;
+  }
+  .domain .dot { color: #f59e0b; }
+  .tagline {
+    font-size: 14px;
+    color: #6b7280;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+  <div class="banner">
+
+    <div class="top">
+      <div class="logo-mark">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 18v-7"></path>
+          <path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"></path>
+          <path d="M14 18v-7"></path>
+          <path d="M18 18v-7"></path>
+          <path d="M3 22h18"></path>
+          <path d="M6 18v-7"></path>
+        </svg>
+      </div>
+      <div class="brand-name">TRUSTIA <span>CAPITAL</span></div>
+    </div>
+
+    <div class="middle">
+      <div class="eyebrow">Private Client Portal</div>
+      <h1 class="headline">Elevating Your<br /><span>Financial Legacy</span></h1>
+      <p class="subline">Private wealth management, bespoke credit facilities, and institutional-grade yield — all in one secure portal.</p>
+    </div>
+
+    <div class="bottom">
+      <div class="domain">trustiacapital<span class="dot">.</span>com</div>
+      <div class="tagline">Private Wealth &amp; Lending</div>
+    </div>
+
+  </div>
+</body>
+</html>

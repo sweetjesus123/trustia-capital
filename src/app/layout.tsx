@@ -14,10 +14,49 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trustia Capital",
-  description: "Private client wealth and capital platform.",
+  metadataBase: new URL("https://www.trustiacapital.com"),
+  applicationName: "Trustia Capital",
+  title: {
+    default: "Trustia Capital — Private Client Portal",
+    template: "%s | Trustia Capital",
+  },
+  description:
+    "Trustia Capital is a private wealth and lending platform. Manage your portfolio, access capital, and track yield — securely.",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://www.trustiacapital.com",
+    siteName: "Trustia Capital",
+    title: "Trustia Capital — Private Client Portal",
+    description:
+      "Trustia Capital is a private wealth and lending platform. Manage your portfolio, access capital, and track yield — securely.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Trustia Capital — Private Client Portal",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Trustia Capital — Private Client Portal",
+    description:
+      "Trustia Capital is a private wealth and lending platform. Manage your portfolio, access capital, and track yield — securely.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "/",
+  },
 };
-
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
