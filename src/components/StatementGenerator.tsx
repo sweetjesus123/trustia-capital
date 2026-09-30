@@ -10,6 +10,9 @@ type StatementGeneratorProps = {
   portfolioValue: number;
   activeLoans: number;
   yieldInvestments: number;
+  settledLiquidity: number;
+  encumberedCollateral: number;
+  accruedYield: number;
 };
 
 function escapeCsv(value: string) {
@@ -37,6 +40,9 @@ export default function StatementGenerator({
   portfolioValue,
   activeLoans,
   yieldInvestments,
+  settledLiquidity,
+  encumberedCollateral,
+  accruedYield,
 }: StatementGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -59,9 +65,9 @@ export default function StatementGenerator({
     ['Aggregate portfolio value', currency(portfolioValue)],
     ['Active loans', currency(activeLoans)],
     ['Yield investments', currency(yieldInvestments)],
-    ['Settled liquidity', 'Not reported by connected portfolio data'],
-    ['Encumbered collateral', 'Not reported by connected portfolio data'],
-    ['Accrued yield', 'Not reported by connected portfolio data'],
+    ['Settled liquidity', currency(settledLiquidity)],
+    ['Encumbered collateral', currency(encumberedCollateral)],
+    ['Accrued yield', currency(accruedYield)],
   ];
 
   function downloadCsv() {

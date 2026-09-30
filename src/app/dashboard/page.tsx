@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import DashboardActions from '@/components/DashboardActions';
+import DashboardAutoRefresh from '@/components/DashboardAutoRefresh';
 import DashboardNotificationsButton from '@/components/DashboardNotificationsButton';
 import SignOutButton from '@/components/SignOutButton';
 import AuditCertificate from '@/components/AuditCertificate';
@@ -15,6 +16,17 @@ import {
   ChartNoAxesCombined,
 } from 'lucide-react';
 
+type DashboardPortfolio = {
+  id: string;
+  account_status: string | null;
+  portfolio_value: number | string | null;
+  active_loans: number | string | null;
+  yield_investments: number | string | null;
+  available_funds: number | string | null;
+  locked_funds: number | string | null;
+  realized_yield: number | string | null;
+};
+
 export const revalidate = 0;
 export const dynamic = 'force-dynamic';
 
@@ -26,22 +38,36 @@ export default async function DashboardPage() {
     redirect('/auth/login');
   }
 
-  // FIXED: Changed 'user_id' to 'id'
-  const { data: portfolio } = await supabase
+  const { data: fetchedPortfolio, error: portfolioError } = await supabase
     .from('portfolios')
-    .select('account_status, portfolio_value, active_loans, yield_investments')
+    .select('id, account_status, portfolio_value, active_loans, yield_investments, available_funds, locked_funds, realized_yield')
     .eq('id', user.id)
     .maybeSingle();
 
-  console.log('Current Portfolio Data:', portfolio);
+  if (portfolioError) {
+    console.error('Could not load the authenticated user portfolio:', portfolioError);
+    throw new Error('Unable to load your portfolio. Please try again later.');
+  }
 
-  const isVerified = portfolio?.account_status === 'verified';
-  const portfolioValue = Number(portfolio?.portfolio_value) || 0;
-  const activeLoans = Number(portfolio?.active_loans) || 0;
-  const yieldInvestments = Number(portfolio?.yield_investments) || 0;
-  const settledLiquidity = 0;
-  const encumberedCollateral = 0;
-  const accruedYield = 0;
+  if (fetchedPortfolio && fetchedPortfolio.id !== user.id) {
+    console.error('Portfolio lookup returned a row for a different user.');
+    throw new Error('Unable to verify your portfolio ownership.');
+  }
+
+  if (!fetchedPortfolio) {
+    throw new Error('No portfolio record was found for your account.');
+  }
+
+  const portfolio = fetchedPortfolio as DashboardPortfolio;
+
+  const isVerified = portfolio.account_status === 'verified';
+  const portfolioValue = Number(portfolio.portfolio_value) || 0;
+  const activeLoans = Number(portfolio.active_loans) || 0;
+  const yieldInvestments = Number(portfolio.yield_investments) || 0;
+
+  const settledLiquidity = Number(portfolio.available_funds) || 0;
+  const encumberedCollateral = Number(portfolio.locked_funds) || 0;
+  const accruedYield = Number(portfolio.realized_yield) || 0;
 
   const metadataName = user.user_metadata?.full_name;
   const displayName =
@@ -53,11 +79,13 @@ export default async function DashboardPage() {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('');
+
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
   return (
     <div className="flex flex-1 flex-col bg-[#090d16] text-gray-100 font-sans">
+      <DashboardAutoRefresh />
       {/* Top Header Nav */}
       <header className="border-b border-gray-800 bg-[#090d16]/90 backdrop-blur-md sticky top-0 z-50 px-6 py-4 print:hidden">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -114,6 +142,9 @@ export default async function DashboardPage() {
             portfolioValue={portfolioValue}
             activeLoans={activeLoans}
             yieldInvestments={yieldInvestments}
+            settledLiquidity={settledLiquidity}
+            encumberedCollateral={encumberedCollateral}
+            accruedYield={accruedYield}
           />
         </div>
 
@@ -146,35 +177,35 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-6">
                 <div className="mb-4 flex items-start justify-between">
-                  <span className="text-xs font-medium text-gray-400">Settled Liquidity</span>
+                  <span className="text-xs font-medium text-gray-400">Available Funds</span>
                   <div className="rounded-lg bg-amber-500/10 p-2 text-amber-400">
                     <Wallet className="h-5 w-5" />
                   </div>
                 </div>
                 <div className="text-2xl font-extrabold text-white">{formatCurrency(settledLiquidity)}</div>
-                <p className="mt-2 text-xs text-gray-500">Available funds</p>
+                <p className="mt-2 text-xs text-gray-500">Funds available in your account</p>
               </div>
 
               <div className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
                 <div className="mb-4 flex items-start justify-between">
-                  <span className="text-xs font-medium text-gray-400">Encumbered Collateral</span>
+                  <span className="text-xs font-medium text-gray-400">Locked Funds</span>
                   <div className="rounded-lg bg-blue-500/10 p-2 text-blue-400">
                     <LockKeyhole className="h-5 w-5" />
                   </div>
                 </div>
                 <div className="text-2xl font-extrabold text-white">{formatCurrency(encumberedCollateral)}</div>
-                <p className="mt-2 text-xs text-gray-500">Locked funds</p>
+                <p className="mt-2 text-xs text-gray-500">Funds committed as collateral</p>
               </div>
 
               <div className="rounded-2xl border border-gray-800 bg-gray-900 p-6">
                 <div className="mb-4 flex items-start justify-between">
-                  <span className="text-xs font-medium text-gray-400">Accrued Yield</span>
+                  <span className="text-xs font-medium text-gray-400">Realized / Accrued</span>
                   <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-400">
                     <ChartNoAxesCombined className="h-5 w-5" />
                   </div>
                 </div>
                 <div className="text-2xl font-extrabold text-white">{formatCurrency(accruedYield)}</div>
-                <p className="mt-2 text-xs text-gray-500">Realized / accrued</p>
+                <p className="mt-2 text-xs text-gray-500">Realized and accrued yield</p>
               </div>
             </div>
 
@@ -211,7 +242,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </main>
-
     </div>
   );
 }
